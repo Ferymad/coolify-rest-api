@@ -10,9 +10,13 @@ COPY . .
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PORT=8000
 
-# Command to run in production
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Expose the port from the environment variable
+EXPOSE $PORT
+
+# Command to run in production - use port-aware script
+CMD ["python", "start.py"]
 
 # For development with auto-reload, override with:
 # CMD ["python", "run_dev.py"] 

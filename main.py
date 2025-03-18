@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 import uuid
+import os
 
 app = FastAPI(
     title="FastAPI REST API",
@@ -61,4 +62,6 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    # Get port from environment variable or use default
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port) 

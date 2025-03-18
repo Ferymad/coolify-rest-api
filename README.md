@@ -7,7 +7,7 @@ A simple REST API built with FastAPI for deployment on Hetzner using Coolify.
 - RESTful API with CRUD operations
 - Interactive API documentation via Swagger UI
 - In-memory database for demonstration
-- Docker and Docker Compose support
+- Docker and Docker Compose support with robust port handling
 - Easy deployment to Coolify
 - Automated test script for API validation
 
@@ -62,13 +62,18 @@ uvicorn main:app --reload
 ### Using Docker
 
 ```bash
-# Build and run with Docker
+# Build and run with Docker (automatic port selection if 8000 is used)
 docker build -t fastapi-app .
-docker run -p 8000:8000 fastapi-app
+docker run -p 8080:8000 -e PORT=8000 fastapi-app
 
-# Or use Docker Compose
-docker-compose up
+# Or use Docker Compose with our helper script (Windows)
+deploy_docker.bat
+
+# Or manually with Docker Compose
+docker-compose up -d
 ```
+
+The API uses intelligent port handling - if the specified port is in use, it will automatically try to find another available port.
 
 ## Testing the API
 
