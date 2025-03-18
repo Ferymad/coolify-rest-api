@@ -1,0 +1,17 @@
+version: 2
+
+build:
+  command: pip install -r requirements.txt
+
+start:
+  command: uvicorn main:app --host 0.0.0.0 --port 80
+
+environment:
+  - name: PYTHONUNBUFFERED
+    value: "1"
+  - name: PYTHONDONTWRITEBYTECODE
+    value: "1"
+  - name: ENVIRONMENT
+    value: "production"
+  - name: PORT
+    value: "80" 
