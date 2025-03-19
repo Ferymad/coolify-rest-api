@@ -7,4 +7,7 @@ tortoise-orm==0.20.0
 loguru==0.7.2
 asyncpg==0.29.0
 python-dotenv==1.0.0
-httpx==0.24.1 
+httpx==0.24.1
+# Additional diagnostic tools
+psutil==5.9.8
+netifaces==0.11.0 

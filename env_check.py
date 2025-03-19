@@ -6,13 +6,14 @@ import os
 import sys
 import socket
 import platform
+import traceback
 from pathlib import Path
 
 def print_header(title):
     """Print a section header."""
-    print("\n" + "=" * 40)
+    print("\n" + "=" * 60)
     print(f" {title}")
-    print("=" * 40)
+    print("=" * 60)
 
 def check_environment_variables():
     """Check all environment variables."""
@@ -27,6 +28,19 @@ def check_environment_variables():
         "POSTGRES_HOST"
     ]
     
+    # Check for Coolify-specific variables
+    coolify_vars = [var for var in os.environ if "COOLIFY" in var.upper()]
+    if coolify_vars:
+        print("Coolify environment detected!")
+        for var in coolify_vars:
+            value = os.environ.get(var)
+            if "PASSWORD" in var.upper() or "SECRET" in var.upper() or "TOKEN" in var.upper():
+                value = "*" * len(value)  # Mask sensitive values
+            print(f"  {var}: {value}")
+    else:
+        print("No Coolify environment variables detected.")
+    
+    print("\nRequired Variables:")
     for var in required_vars:
         value = os.environ.get(var, "NOT SET")
         if var == "POSTGRES_PASSWORD" and value != "NOT SET":
@@ -36,8 +50,8 @@ def check_environment_variables():
     print("\nAll Environment Variables:")
     for key, value in sorted(os.environ.items()):
         if key not in ['PATH', 'PYTHONPATH'] and not key.startswith('_'):
-            if 'PASSWORD' in key:
-                value = "*" * len(value)  # Mask password
+            if 'PASSWORD' in key.upper() or 'SECRET' in key.upper() or 'TOKEN' in key.upper():
+                value = "*" * len(value)  # Mask sensitive values
             print(f"  {key}: {value}")
 
 def check_system_info():
@@ -48,6 +62,19 @@ def check_system_info():
     print(f"Processor: {platform.processor()}")
     print(f"Architecture: {platform.architecture()}")
     print(f"Node: {platform.node()}")
+    
+    # Check if we're running in Docker
+    in_docker = os.path.exists('/.dockerenv')
+    print(f"Running in Docker: {in_docker}")
+    
+    # Check available system resources
+    try:
+        import psutil
+        print(f"\nCPU cores: {psutil.cpu_count()}")
+        print(f"Memory available: {psutil.virtual_memory().available / (1024 * 1024):.2f} MB")
+        print(f"Disk space available: {psutil.disk_usage('/').free / (1024 * 1024 * 1024):.2f} GB")
+    except ImportError:
+        print("\npsutil not available for resource checks")
 
 def check_network_info():
     """Check network information."""
@@ -59,6 +86,21 @@ def check_network_info():
         print(f"IP Address: {ip}")
     except socket.gaierror:
         print("Could not determine IP address")
+    
+    # List all network interfaces
+    try:
+        import netifaces
+        print("\nNetwork Interfaces:")
+        for iface in netifaces.interfaces():
+            try:
+                addrs = netifaces.ifaddresses(iface)
+                if netifaces.AF_INET in addrs:
+                    for addr in addrs[netifaces.AF_INET]:
+                        print(f"  {iface}: {addr['addr']}")
+            except:
+                pass
+    except ImportError:
+        print("\nnetifaces not available for interface listing")
     
     # Check if postgres host is reachable
     postgres_host = os.environ.get("POSTGRES_HOST", "postgres")
@@ -75,6 +117,21 @@ def check_network_info():
                 print(f"Connection to {postgres_host}:{postgres_port} failed (error code: {result})")
     except Exception as e:
         print(f"Error checking connection: {e}")
+    
+    # Try alternate hosts that might be used in Docker/Coolify environments
+    alternate_hosts = ["host.docker.internal", "postgres.coolify", "localhost", "127.0.0.1"]
+    for host in alternate_hosts:
+        if host != postgres_host:  # Skip if it's the same as we already checked
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.settimeout(1)
+                    result = s.connect_ex((host, postgres_port))
+                    if result == 0:
+                        print(f"Connection to alternate host {host}:{postgres_port} successful")
+                    else:
+                        print(f"Connection to alternate host {host}:{postgres_port} failed (error code: {result})")
+            except Exception as e:
+                print(f"Error checking connection to {host}: {e}")
 
 def check_file_structure():
     """Check the file structure."""
@@ -83,6 +140,29 @@ def check_file_structure():
     # Check current directory
     current_dir = Path.cwd()
     print(f"Current directory: {current_dir}")
+    
+    # Check if entrypoint.sh exists and is executable
+    entrypoint = Path("/app/entrypoint.sh")
+    if entrypoint.exists():
+        print(f"Entrypoint script exists: {entrypoint}")
+        is_executable = os.access(entrypoint, os.X_OK)
+        print(f"Entrypoint is executable: {is_executable}")
+    else:
+        print(f"WARNING: Entrypoint script not found at {entrypoint}")
+        # Try to find it elsewhere
+        for path in [Path("./entrypoint.sh"), Path("entrypoint.sh")]:
+            if path.exists():
+                print(f"Found entrypoint at: {path.absolute()}")
+                is_executable = os.access(path, os.X_OK)
+                print(f"  Is executable: {is_executable}")
+    
+    # List the root directory
+    print("\nRoot directory content:")
+    for item in Path("/").iterdir():
+        if item.is_dir():
+            print(f"  DIR: {item}")
+        else:
+            print(f"  FILE: {item}")
     
     # Key directories to check
     dirs_to_check = [
@@ -103,7 +183,8 @@ def check_file_structure():
         "app/core/routers/items.py",
         ".env",
         "requirements.txt",
-        "Dockerfile"
+        "Dockerfile",
+        "entrypoint.sh"
     ]
     
     print("\nChecking directories:")
@@ -119,6 +200,9 @@ def check_file_structure():
         path = current_dir / file_path
         if path.exists() and path.is_file():
             print(f"  ✓ {file_path}")
+            if "entrypoint" in file_path:
+                is_executable = os.access(path, os.X_OK)
+                print(f"    Is executable: {is_executable}")
         else:
             print(f"  ✗ {file_path} (not found)")
 
@@ -126,10 +210,16 @@ if __name__ == "__main__":
     print_header("ENVIRONMENT DIAGNOSTIC REPORT")
     print("This script helps troubleshoot deployment issues.")
     
-    check_system_info()
-    check_environment_variables()
-    check_network_info()
-    check_file_structure()
-    
-    print_header("DIAGNOSTIC COMPLETE")
-    print("If you see any issues above, please address them before deployment.") 
+    try:
+        check_system_info()
+        check_environment_variables()
+        check_network_info()
+        check_file_structure()
+        
+        print_header("DIAGNOSTIC COMPLETE")
+        print("If you see any issues above, please address them before deployment.")
+    except Exception as e:
+        print_header("ERROR DURING DIAGNOSTICS")
+        print(f"An error occurred while running diagnostics: {e}")
+        print("\nStacktrace:")
+        traceback.print_exc() 

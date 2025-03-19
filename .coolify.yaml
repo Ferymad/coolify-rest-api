@@ -18,8 +18,9 @@ environment:
     value: "mydb"
   - name: POSTGRES_PORT
     value: "5432"
+  # For Coolify deployments, this will be replaced with the actual database service hostname
   - name: POSTGRES_HOST
-    value: "postgres"
+    value: "host.docker.internal"
   - name: APP_NAME
     value: "FastAPI REST API with Tortoise ORM"
   - name: APP_VERSION

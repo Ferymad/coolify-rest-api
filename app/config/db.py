@@ -1,6 +1,7 @@
 """Database configuration module."""
 import os
 import sys
+import socket
 from loguru import logger
 
 DB_MODELS = ["app.core.models.tortoise"]
@@ -17,7 +18,9 @@ class PostgresSettings:
         self.postgres_password = os.environ.get("POSTGRES_PASSWORD", "postgres")
         self.postgres_db = os.environ.get("POSTGRES_DB", "mydb")
         self.postgres_port = os.environ.get("POSTGRES_PORT", "5432")
-        self.postgres_host = os.environ.get("POSTGRES_HOST", "postgres")
+        
+        # Try to determine the best postgres host
+        self.postgres_host = self._determine_postgres_host()
         
         # Log the settings to help with debugging
         logger.info(f"PostgreSQL Settings loaded from environment")
@@ -26,6 +29,40 @@ class PostgresSettings:
         logger.info(f"Database: {self.postgres_db}")
         logger.info(f"User: {self.postgres_user}")
         logger.info(f"All ENV variables: {', '.join([f'{k}={v}' for k, v in os.environ.items() if 'POSTGRES' in k])}")
+    
+    def _determine_postgres_host(self):
+        """Try different strategies to determine the best PostgreSQL host."""
+        # Get the host from the environment variable
+        host = os.environ.get("POSTGRES_HOST", "postgres")
+        
+        # If running in Coolify with the default value, try some alternate options
+        if host == "postgres":
+            # Check if host.docker.internal is reachable (works on Docker Desktop)
+            if self._is_host_reachable("host.docker.internal"):
+                logger.info("Using host.docker.internal as PostgreSQL host")
+                return "host.docker.internal"
+            
+            # Check if postgres.coolify is reachable (might work in Coolify network)
+            if self._is_host_reachable("postgres.coolify"):
+                logger.info("Using postgres.coolify as PostgreSQL host")
+                return "postgres.coolify"
+        
+        logger.info(f"Using {host} as PostgreSQL host")
+        return host
+    
+    def _is_host_reachable(self, host):
+        """Check if a host is reachable on the PostgreSQL port."""
+        try:
+            port = int(self.postgres_port)
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(1)
+                result = s.connect_ex((host, port))
+                reachable = (result == 0)
+                logger.info(f"Host {host}:{port} reachable: {reachable}")
+                return reachable
+        except Exception as e:
+            logger.warning(f"Error checking if {host} is reachable: {e}")
+            return False
 
 
 class TortoiseSettings:
