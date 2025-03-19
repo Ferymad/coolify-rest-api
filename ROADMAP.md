@@ -44,14 +44,14 @@ This roadmap outlines the steps to transform our current in-memory FastAPI appli
 ## Phase 5: Docker and Deployment
 
 - [x] Update docker-compose.yml to include PostgreSQL service
-- [ ] Test local deployment with Docker Compose
-- [ ] Prepare for Coolify deployment
+- [x] Test local deployment with Docker Compose
+- [x] Prepare for Coolify deployment
 
 ## Phase 6: Testing and Documentation
 
-- [ ] Test all API endpoints
-- [ ] Verify database operations
-- [ ] Document API with comprehensive examples
+- [x] Test all API endpoints
+- [x] Verify database operations
+- [x] Document API with comprehensive examples
 
 ## Phase 7: Performance Optimization
 
@@ -66,7 +66,7 @@ This roadmap outlines the steps to transform our current in-memory FastAPI appli
 3. ✅ Create Tortoise ORM models and Pydantic schemas
 4. ✅ Implement API routers and endpoints
 5. ✅ Set up Docker environment with PostgreSQL
-6. ⬜ Test and document the API
+6. ✅ Test and document the API
 7. ⬜ Deploy to production with Coolify
 
 ## Success Criteria
