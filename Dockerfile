@@ -2,9 +2,17 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy application code
 COPY . .
 
 # Set environment variables
@@ -12,21 +20,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=3000
 
-# Make scripts executable
-RUN chmod +x run.sh check_env.sh
-
 # Expose the port
 EXPOSE 3000
 
-# Install curl for healthcheck and netstat for diagnostics
-RUN apt-get update && apt-get install -y curl net-tools && apt-get clean
-
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
-
-# Command to run in production
-CMD ["bash", "run.sh"]
-
-# For development with auto-reload, override with:
-# CMD ["python", "run_dev.py"] 
+# Entry point - plain and simple
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3000"] 

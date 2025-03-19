@@ -16,14 +16,20 @@ def init(app: FastAPI) -> None:
     Args:
         app: The FastAPI application instance.
     """
-    logger.info("Initializing routers...")
-    init_routers(app)
-    
-    logger.info("Initializing database...")
-    init_db(app)
-    
-    logger.info("Initializing exception handlers...")
-    init_exceptions_handlers(app)
+    try:
+        logger.info("Initializing exception handlers...")
+        init_exceptions_handlers(app)
+        
+        logger.info("Initializing database...")
+        init_db(app)
+        
+        logger.info("Initializing routers...")
+        init_routers(app)
+        
+        logger.success("Application initialized successfully!")
+    except Exception as e:
+        logger.error(f"Failed to initialize application: {e}")
+        raise
 
 def init_exceptions_handlers(app: FastAPI) -> None:
     """
@@ -45,12 +51,18 @@ def init_db(app: FastAPI) -> None:
     Args:
         app: The FastAPI application instance.
     """
-    register_tortoise(
-        app,
-        db_url=tortoise_config.db_url,
-        generate_schemas=tortoise_config.generate_schemas,
-        modules=tortoise_config.modules,
-    )
+    try:
+        logger.info(f"Registering Tortoise ORM with URL: {tortoise_config.db_url.replace(tortoise_config.db_url.split('@')[0].split('://')[-1], '******')}")
+        register_tortoise(
+            app,
+            db_url=tortoise_config.db_url,
+            generate_schemas=tortoise_config.generate_schemas,
+            modules=tortoise_config.modules,
+        )
+        logger.success("Database initialized successfully!")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+        raise
 
 def init_routers(app: FastAPI) -> None:
     """
@@ -62,6 +74,8 @@ def init_routers(app: FastAPI) -> None:
     from app.core import routers
 
     routers_list = [o[1] for o in getmembers(routers) if isinstance(o[1], TypedAPIRouter)]
-
+    logger.info(f"Found {len(routers_list)} routers to register")
+    
     for router in routers_list:
+        logger.info(f"Registering router with prefix: {router.prefix}")
         app.include_router(**router.dict()) 

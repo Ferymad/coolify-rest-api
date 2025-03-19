@@ -4,27 +4,45 @@ services:
   api:
     build: .
     ports:
-      - "${API_PORT}:${PORT}"
+      - "${API_PORT:-8080}:${PORT:-3000}"
     environment:
-      - PORT=${PORT}
-      - APP_MODULE=app.main:app
+      - PORT=${PORT:-3000}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-mydb}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_HOST=postgres
+      - APP_NAME=${APP_NAME:-FastAPI REST API with Tortoise ORM}
+      - APP_VERSION=${APP_VERSION:-1.0.0}
+      - APP_DESCRIPTION=${APP_DESCRIPTION:-A RESTful API built with FastAPI and Tortoise ORM}
     env_file:
       - .env
     depends_on:
       - postgres
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   postgres:
     image: postgres:14
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-mydb}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data: 
