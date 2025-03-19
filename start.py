@@ -5,6 +5,7 @@ import os
 import socket
 import sys
 import uvicorn
+from loguru import logger
 
 def is_port_in_use(port):
     """Check if a port is in use."""
@@ -26,18 +27,19 @@ if __name__ == "__main__":
     
     # If the port is in use, find an alternative
     if is_port_in_use(requested_port):
-        print(f"Warning: Port {requested_port} is already in use.")
+        logger.warning(f"Port {requested_port} is already in use.")
         available_port = find_available_port(requested_port + 1)
         
         if available_port:
-            print(f"Using alternative port: {available_port}")
+            logger.info(f"Using alternative port: {available_port}")
             os.environ["PORT"] = str(available_port)
             port = available_port
         else:
-            print("Error: Could not find an available port. Exiting.")
+            logger.error("Could not find an available port. Exiting.")
             sys.exit(1)
     else:
         port = requested_port
     
-    # Run the server
-    uvicorn.run("main:app", host="0.0.0.0", port=port) 
+    # Run the server with the new app module path
+    logger.info(f"Starting server on port {port}")
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port) 

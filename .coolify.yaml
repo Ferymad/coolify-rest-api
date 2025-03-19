@@ -13,6 +13,22 @@ environment:
     value: "1"
   - name: PORT
     value: "80"
+  - name: POSTGRES_USER
+    value: "postgres"
+  - name: POSTGRES_PASSWORD
+    value: "postgres"
+  - name: POSTGRES_DB
+    value: "mydb"
+  - name: POSTGRES_PORT
+    value: "5432"
+  - name: POSTGRES_HOST
+    value: "postgres"
+  - name: APP_NAME
+    value: "FastAPI REST API with Tortoise ORM"
+  - name: APP_VERSION
+    value: "1.0.0"
+  - name: APP_DESCRIPTION
+    value: "A RESTful API built with FastAPI and Tortoise ORM for deployment on Hetzner with Coolify"
 
 publish:
   - name: API
