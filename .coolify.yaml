@@ -3,9 +3,6 @@ version: 2
 build:
   method: dockerfile
 
-start:
-  command: null # Uses the CMD in Dockerfile
-
 environment:
   - name: PYTHONUNBUFFERED
     value: "1"
