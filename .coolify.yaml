@@ -4,7 +4,7 @@ build:
   command: pip install -r requirements.txt
 
 start:
-  command: python start.py
+  command: ["python", "start.py"]
 
 environment:
   - name: PYTHONUNBUFFERED
