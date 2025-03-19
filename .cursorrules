@@ -67,3 +67,92 @@ Key Conventions
 
 Refer to FastAPI documentation for Data Models, Path Operations, and Middleware for best practices.
 
+Before diving into the best practices, please note that you may need to adapt the globs depending on your project's specific file structure and requirements.
+
+---
+name: fastapi-best-practices.mdc
+description: Best practices for building APIs with FastAPI
+globs: **/*.py
+---
+
+- Use `Depends` for dependency injection to manage reusable components.
+- Implement proper error handling with custom exception handlers.
+- Utilize `BackgroundTasks` for non-blocking operations.
+- Use Pydantic models for request/response validation and serialization.
+
+---
+name: pydantic-best-practices.mdc
+description: Best practices for data validation and settings management with Pydantic
+globs: **/*.py
+---
+
+- Use `BaseModel` for data validation and serialization.
+- Implement custom validators for complex field validation.
+- Use `Field` to set additional constraints and metadata.
+- Leverage `Settings` for configuration management.
+
+---
+name: uvicorn-best-practices.mdc
+description: Best practices for running FastAPI applications with Uvicorn
+globs: **/*.py
+---
+
+- Use `--reload` flag for development to automatically restart the server.
+- Set appropriate worker count for production using `--workers`.
+- Configure logging levels with `--log-level`.
+- Use SSL/TLS certificates for secure connections.
+
+---
+name: tortoise-orm-best-practices.mdc
+description: Best practices for database operations with Tortoise ORM
+globs: **/*.py
+---
+
+- Use async/await syntax for database operations.
+- Implement proper transaction management with `transaction.atomic`.
+- Use `F` expressions for database-level operations.
+- Leverage `select_related` and `prefetch_related` for efficient querying.
+
+---
+name: loguru-best-practices.mdc
+description: Best practices for logging with Loguru
+globs: **/*.py
+---
+
+- Use structured logging with `extra` parameter for additional context.
+- Implement proper log rotation and retention policies.
+- Use different log levels (DEBUG, INFO, WARNING, ERROR) appropriately.
+- Configure Loguru to output to multiple sinks (console, file, etc.).
+
+---
+name: asyncpg-best-practices.mdc
+description: Best practices for PostgreSQL database connections with asyncpg
+globs: **/*.py
+---
+
+- Use connection pooling for better performance.
+- Implement proper error handling and transaction management.
+- Use prepared statements for frequently executed queries.
+- Leverage asyncpg's built-in support for JSON and array types.
+
+---
+name: python-dotenv-best-practices.mdc
+description: Best practices for managing environment variables with python-dotenv
+globs: **/*.py
+---
+
+- Keep sensitive information out of version control.
+- Use `.env` files for development and testing environments.
+- Implement proper fallback mechanisms for missing environment variables.
+- Use `load_dotenv` early in your application startup.
+
+---
+name: httpx-best-practices.mdc
+description: Best practices for making HTTP requests with httpx
+globs: **/*.py
+---
+
+- Use async/await syntax for non-blocking HTTP requests.
+- Implement proper timeout settings to prevent hanging requests.
+- Use `Client` for managing connection pooling and persistent connections.
+- Handle different response types (JSON, text, streaming) appropriately.
