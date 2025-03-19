@@ -11,8 +11,6 @@ environment:
     value: "1"
   - name: PYTHONDONTWRITEBYTECODE
     value: "1"
-  - name: ENVIRONMENT
-    value: "production"
   - name: PORT
     value: "80"
 
